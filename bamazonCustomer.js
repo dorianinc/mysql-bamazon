@@ -7,13 +7,14 @@ var inquirer = require("inquirer");
 // Global Variables
 var itemInfo = '';
 var itemData = '';
-var quantity = '';
-var id = '';
+var desiredQuantity = '';
+var desiredItemId = '';
 
 
 // CLC colors
 var red = clc.redBright.bold;
 var orange = clc.xterm(202).bold;
+var yellow = clc.yellowBright.bold;
 var green = clc.greenBright.bold;
 var blue = clc.blueBright.bold;
 
@@ -63,31 +64,32 @@ function pullInventory() {
                 '\n Item ID: ' + itemData[i].item_id +
                 '\n Product Name: ' + itemData[i].product_name +
                 '\n Department: ' + itemData[i].department_name +
-                '\n Price: ' + '$' + itemData[i].price; +
-                '\n ----------------------------------------'
-                ;
+                '\n Price: ' + '$' + itemData[i].price +
+                '\n # Remaining: ' + itemData[i].stock_quantity +
+                '\n ----------------------------------------\n'
+            ;
         }
 
         console.log(
-            '\n' +
-            '\n -------------------' +
+            '\n\n -------------------' +
             blue('\n Existing Inventory:') +
             '\n -------------------')
-            ;
+        ;
 
         console.log(itemInfo);
+
         getIdAndQuantity();
     });
 
 };
 
 function getIdAndQuantity() {
-
+    
     var notValid =
         '\n ------------------------------' +
         red('\n Please input a number value of at least 1') +
         '\n ------------------------------'
-        ;
+    ;
 
     var greetUser = [
         {
@@ -118,24 +120,27 @@ function getIdAndQuantity() {
 
     inquirer.prompt(greetUser).then(answers => {
 
-        id = answers.itemId;
-        quantity = answers.unitQuantity;
+        desiredItemId = answers.itemId;
+        desiredQuantity = answers.unitQuantity;
+
         pushOrderRequest();
     });
 };
 
 function pushOrderRequest() {
 
-    var desiredItem = itemData[id -1].product_name;
-    var stockQuantity = itemData[id -1].stock_quantity;
-    var desiredItemPrice = itemData[id -1].price;
+    var desiredItemName = itemData[desiredItemId -1].product_name;
+    var desiredItemPrice = itemData[desiredItemId -1].price;
+    var stockQuantity = itemData[desiredItemId -1].stock_quantity;
+    
 
     console.log(
-        blue("\n Selected Item: ") + desiredItem +
-        blue("\n Desired quantity: ") + quantity + "\n")
+        blue('\n Selected Item: '), desiredItemName +
+        blue('\n Desired quantity: '), desiredQuantity, '\n')
     ;
 
     var submitOrder = [
+
         {
             type: 'confirm',
             name: 'confirmOrder',
@@ -146,12 +151,25 @@ function pushOrderRequest() {
 
     inquirer.prompt(submitOrder).then(answers => {
         if (answers.confirmOrder) {
-            if (quantity > stockQuantity) {
-                console.log(red("\n Insufficient quantity!"));
+
+            if (desiredQuantity > stockQuantity) {
+
+                console.log(
+                    ' ------------------------------' +
+                    red('\n Insufficent Quantity') +
+                    '\n ------------------------------')
+                ;
+
             }else{
-                console.log(green(" Great your total is: "), "$" + desiredItemPrice + "\n");
-                stockQuantity -= quantity;
-                console.log(orange(" Remaining stock quantity: ") + stockQuantity + "\n");
+
+                stockQuantity -= desiredQuantity;
+                
+                console.log(
+                    '\n ------------------------------' +
+                    yellow('\n Great your total is: '), '$', desiredItemPrice * desiredQuantity +
+                    orange('\n Remaining stock quantity: '), stockQuantity +
+                    '\n ------------------------------\n')
+                ;
             }
         }
     })
