@@ -46,8 +46,8 @@ figlet("Bamazon", function (err, data) {
     }
     console.log(data)
     //Welcome screen text.
-    console.log(blue(" Welcome to Bamazon!"));
-    console.log(blue(" Your one stop shop for anything and everything"));
+    console.log(blue(' Welcome to Bamazon!'));
+    console.log(blue(' Your one stop shop for anything and everything'));
 
     pullInventory();
 });
@@ -67,14 +67,14 @@ function pullInventory() {
                 '\n Price: ' + '$' + itemData[i].price +
                 '\n # Remaining: ' + itemData[i].stock_quantity +
                 '\n ----------------------------------------\n'
-            ;
+                ;
         }
 
         console.log(
             '\n\n -------------------' +
             blue('\n Existing Inventory:') +
             '\n -------------------')
-        ;
+            ;
 
         console.log(itemInfo);
 
@@ -84,12 +84,12 @@ function pullInventory() {
 };
 
 function getIdAndQuantity() {
-    
+
     var notValid =
         '\n ------------------------------' +
         red('\n Please input a number value of at least 1') +
         '\n ------------------------------'
-    ;
+        ;
 
     var greetUser = [
         {
@@ -129,24 +129,24 @@ function getIdAndQuantity() {
 
 function pushOrderRequest() {
 
-    var desiredItemName = itemData[desiredItemId -1].product_name;
-    var desiredItemPrice = itemData[desiredItemId -1].price;
-    var stockQuantity = itemData[desiredItemId -1].stock_quantity;
-    
+    var desiredItemName = itemData[desiredItemId - 1].product_name;
+    var desiredItemPrice = itemData[desiredItemId - 1].price;
+    var stockQuantity = itemData[desiredItemId - 1].stock_quantity;
+
 
     console.log(
         blue('\n Selected Item: '), desiredItemName +
         blue('\n Desired quantity: '), desiredQuantity, '\n')
-    ;
+        ;
 
     var submitOrder = [
 
         {
             type: 'confirm',
             name: 'confirmOrder',
-            message: green(" Would you like to continue with this order?"),
+            message: green(' Would you like to continue with this order?'),
             default: true
-        }    
+        }
     ];
 
     inquirer.prompt(submitOrder).then(answers => {
@@ -158,21 +158,28 @@ function pushOrderRequest() {
                     ' ------------------------------' +
                     red('\n Insufficent Quantity') +
                     '\n ------------------------------')
-                ;
+                    ;
 
-            }else{
-
+            } else {
+                var updateInventory = 'UPDATE products SET stock_quantity = ' + (stockQuantity - desiredQuantity) + ' WHERE item_id = ' + desiredItemId;
                 stockQuantity -= desiredQuantity;
-                
+
+                // Update the inventory
+                connection.query(updateInventory, function (err, data) {
+                    if (err) throw err;
+
+                });
+
                 console.log(
                     '\n ------------------------------' +
                     yellow('\n Great your total is: '), '$', desiredItemPrice * desiredQuantity +
                     orange('\n Remaining stock quantity: '), stockQuantity +
                     '\n ------------------------------\n')
                 ;
+
+                connection.end();
             }
         }
-    })
-    connection.end();
+    });
 }
 
