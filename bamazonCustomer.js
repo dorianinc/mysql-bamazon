@@ -37,7 +37,7 @@ connection.connect(function (err) {
     if (err) throw err;
 });
 
-//When user enters game, convert "Hangman Game" text characters to drawings using figlet npm package.
+//When user enters game, convert "Bamazon" text characters to drawings using figlet npm package.
 figlet("Bamazon", function (err, data) {
     if (err) {
         console.log('Something went wrong...');
@@ -52,6 +52,7 @@ figlet("Bamazon", function (err, data) {
     pullInventory();
 });
 
+// Function to pull user inventory 
 function pullInventory() {
     connection.query("SELECT * FROM products", function (err, data) {
         if (err) throw err;
@@ -82,39 +83,38 @@ function pullInventory() {
     });
 
 };
-
-function getIdAndQuantity() {
+// Function used to make sure user input is actually a number 
+function checkIfNaN(value) {
 
     var notValid =
-        '\n ------------------------------' +
-        red('\n Please input a number value of at least 1') +
-        '\n ------------------------------'
-        ;
+    '\n ------------------------------' +
+    red('\n Please input a number value') +
+    '\n ------------------------------'
+    ;
+
+    if (isNaN(value) === false && value >= 1) {
+        return true;
+    }
+
+    console.log(notValid);
+    return false;
+}
+
+// Function used to select product and quantity wanted
+function getIdAndQuantity() {
 
     var greetUser = [
         {
             type: 'input',
             name: 'itemId',
             message: green(" Please input the ID # for the product you're looking for: "),
-            validate: function checkIfNaN(value) {
-                if (isNaN(value) === false && value >= 1) {
-                    return true;
-                }
-                console.log(notValid);
-                return false;
-            }
+            validate: checkIfNaN,
         },
         {
             type: 'input',
             name: 'unitQuantity',
             message: green(' How many units? '),
-            validate: function (value) {
-                if (isNaN(value) === false && value >= 1) {
-                    return true;
-                }
-                console.log(notValid);
-                return false;
-            }
+            validate: checkIfNaN,
         }
     ];
 
@@ -127,6 +127,7 @@ function getIdAndQuantity() {
     });
 };
 
+// Function used to confirm order and push request
 function pushOrderRequest() {
 
     var desiredItemName = itemData[desiredItemId - 1].product_name;
@@ -175,11 +176,14 @@ function pushOrderRequest() {
                     yellow('\n Great your total is: '), '$', desiredItemPrice * desiredQuantity +
                     orange('\n Remaining stock quantity: '), stockQuantity +
                     '\n ------------------------------\n')
-                ;
+                    ;
 
                 connection.end();
+
             }
         }
     });
 }
+
+
 
